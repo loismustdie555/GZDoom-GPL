@@ -1,8 +1,4 @@
-// Emacs style mode select -*- C++ -*-
-//---------------------------------------------------------------------------
-//
-// Copyright(C) 2000 Simon Howard
-// Copyright(C) 2005-2008 Christoph Oelckers
+// Copyright(C) 2000 Simon Howard, 2005-2008 Christoph Oelckers
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -44,8 +40,7 @@
 //    * For any binary release of the port, the source code is also made 
 //      available.
 //    * The copyright notice is kept on any file containing my code.
-//
-//
+
 
 #include "templates.h"
 #include "p_local.h"

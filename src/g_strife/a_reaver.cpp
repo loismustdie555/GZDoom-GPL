@@ -1,14 +1,3 @@
-/*
-#include "actor.h"
-#include "p_enemy.h"
-#include "a_action.h"
-#include "s_sound.h"
-#include "m_random.h"
-#include "p_local.h"
-#include "a_strifeglobal.h"
-#include "thingdef/thingdef.h"
-*/
-
 static FRandom pr_reaverattack ("ReaverAttack");
 
 DEFINE_ACTION_FUNCTION(AActor, A_ReaverRanged)

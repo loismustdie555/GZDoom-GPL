@@ -710,4 +710,3 @@ DEFINE_ACTION_FUNCTION(AActor, A_HandLower)
 		if (self->player->extralight > 0) self->player->extralight--;
 	}
 }
-

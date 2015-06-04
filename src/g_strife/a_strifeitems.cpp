@@ -1,22 +1,3 @@
-/*
-#include "info.h"
-#include "a_pickups.h"
-#include "d_player.h"
-#include "gstrings.h"
-#include "p_local.h"
-#include "p_spec.h"
-#include "a_strifeglobal.h"
-#include "p_lnspec.h"
-#include "p_enemy.h"
-#include "s_sound.h"
-#include "d_event.h"
-#include "a_keys.h"
-#include "c_console.h"
-#include "templates.h"
-#include "thingdef/thingdef.h"
-#include "g_level.h"
-#include "doomstat.h"
-*/
 // Degnin Ore ---------------------------------------------------------------
 
 IMPLEMENT_CLASS(ADegninOre)

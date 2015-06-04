@@ -1,14 +1,3 @@
-/*
-#include "actor.h"
-#include "m_random.h"
-#include "a_action.h"
-#include "p_local.h"
-#include "p_enemy.h"
-#include "s_sound.h"
-#include "a_strifeglobal.h"
-#include "thingdef/thingdef.h"
-*/
-
 static FRandom pr_templar ("Templar");
 
 DEFINE_ACTION_FUNCTION(AActor, A_TemplarAttack)

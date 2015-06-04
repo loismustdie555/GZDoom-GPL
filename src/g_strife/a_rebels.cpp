@@ -1,17 +1,3 @@
-/*
-#include "actor.h"
-#include "m_random.h"
-#include "a_action.h"
-#include "p_local.h"
-#include "p_enemy.h"
-#include "s_sound.h"
-#include "gi.h"
-#include "a_sharedglobal.h"
-#include "a_strifeglobal.h"
-#include "thingdef/thingdef.h"
-#include "doomstat.h"
-*/
-
 static FRandom pr_shootgun ("ShootGun");
 
 //============================================================================

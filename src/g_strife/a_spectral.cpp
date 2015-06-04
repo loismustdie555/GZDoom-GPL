@@ -1,14 +1,3 @@
-/*
-#include "actor.h"
-#include "m_random.h"
-#include "a_action.h"
-#include "p_local.h"
-#include "s_sound.h"
-#include "m_random.h"
-#include "a_strifeglobal.h"
-#include "thingdef/thingdef.h"
-*/
-
 AActor *P_SpawnSubMissile (AActor *source, const PClass *type, AActor *target);
 
 class ASpectralMonster : public AActor

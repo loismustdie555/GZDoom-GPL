@@ -1,16 +1,3 @@
-/*
-#include "actor.h"
-#include "m_random.h"
-#include "p_local.h"
-#include "c_console.h"
-#include "p_enemy.h"
-#include "a_action.h"
-#include "gstrings.h"
-#include "thingdef/thingdef.h"
-#include "thingdef/thingdef.h"
-#include "doomstat.h"
-*/
-
 static FRandom pr_bang4cloud ("Bang4Cloud");
 static FRandom pr_lightout ("LightOut");
 

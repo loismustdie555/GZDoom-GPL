@@ -33,7 +33,6 @@ static void AddDefaultMidiDevices(FOptionValues *opt)
 	pair[p+1].Value = -2.0;
 	pair[p+2].Text = "Sound System";
 	pair[p+2].Value = -1.0;
-
 }
 
 static void MIDIDeviceChanged(int newdev)

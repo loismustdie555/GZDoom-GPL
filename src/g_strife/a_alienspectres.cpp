@@ -1,18 +1,3 @@
-/*
-#include "actor.h"
-#include "m_random.h"
-#include "a_action.h"
-#include "p_local.h"
-#include "p_enemy.h"
-#include "s_sound.h"
-#include "m_random.h"
-#include "a_strifeglobal.h"
-#include "c_console.h"
-#include "gstrings.h"
-#include "thingdef/thingdef.h"
-#include "doomstat.h"
-*/
-
 static FRandom pr_spectrespawn ("AlienSpectreSpawn");
 static FRandom pr_spectrechunk ("212e4");
 

@@ -1,15 +1,3 @@
-/*
-#include "actor.h"
-#include "m_random.h"
-#include "a_action.h"
-#include "p_local.h"
-#include "p_enemy.h"
-#include "s_sound.h"
-#include "a_strifeglobal.h"
-#include "thingdef/thingdef.h"
-#include "g_level.h"
-#include "doomstat.h"
-*/
 static FRandom pr_prog ("Programmer");
 
 // The Programmer level ending thing ----------------------------------------

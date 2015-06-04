@@ -1,13 +1,3 @@
-/*
-#include "actor.h"
-#include "m_random.h"
-#include "a_action.h"
-#include "p_local.h"
-#include "p_enemy.h"
-#include "s_sound.h"
-#include "thingdef/thingdef.h"
-*/
-
 static FRandom pr_inq ("Inquisitor");
 
 DEFINE_ACTION_FUNCTION(AActor, A_InquisitorWalk)
@@ -125,4 +115,3 @@ DEFINE_ACTION_FUNCTION(AActor, A_TossArm)
 	foo->vely = FixedMul (foo->Speed, finesine[foo->angle >> ANGLETOFINESHIFT]) >> 3;
 	foo->velz = pr_inq() << 10;
 }
-

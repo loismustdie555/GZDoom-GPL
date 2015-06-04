@@ -1,13 +1,3 @@
-/*
-#include "actor.h"
-#include "m_random.h"
-#include "a_action.h"
-#include "p_local.h"
-#include "p_enemy.h"
-#include "s_sound.h"
-#include "thingdef/thingdef.h"
-*/
-
 static FRandom pr_stalker ("Stalker");
 
 
@@ -70,4 +60,3 @@ DEFINE_ACTION_FUNCTION(AActor, A_StalkerWalk)
 	S_Sound (self, CHAN_BODY, "stalker/walk", 1, ATTN_NORM);
 	A_Chase (self);
 }
-
