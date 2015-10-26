@@ -147,7 +147,7 @@ AActor *P_SpawnMissileZAimed (AActor *source, fixed_t z, AActor *dest, const PCl
 AActor *P_SpawnPlayerMissile (AActor* source, const PClass *type);
 AActor *P_SpawnPlayerMissile (AActor *source, const PClass *type, angle_t angle);
 AActor *P_SpawnPlayerMissile (AActor *source, fixed_t x, fixed_t y, fixed_t z, const PClass *type, angle_t angle, 
-							  AActor **pLineTarget = NULL, AActor **MissileActor = NULL, bool nofreeaim = false);
+							  AActor **pLineTarget = NULL, AActor **MissileActor = NULL, bool nofreeaim = false, bool noautoaim = false);
 
 void P_CheckFakeFloorTriggers (AActor *mo, fixed_t oldz, bool oldz_has_viewheight=false);
 
@@ -170,6 +170,31 @@ bool P_Thing_Raise(AActor *thing, AActor *raiser);
 bool P_Thing_CanRaise(AActor *thing);
 const PClass *P_GetSpawnableType(int spawnnum);
 void InitSpawnablesFromMapinfo();
+int P_Thing_Warp(AActor *caller, AActor *reference, fixed_t xofs, fixed_t yofs, fixed_t zofs, angle_t angle, int flags, fixed_t heightoffset);
+
+enum WARPF
+{
+	WARPF_ABSOLUTEOFFSET = 0x1,
+	WARPF_ABSOLUTEANGLE  = 0x2,
+	WARPF_USECALLERANGLE = 0x4,
+
+	WARPF_NOCHECKPOSITION = 0x8,
+
+	WARPF_INTERPOLATE       = 0x10,
+	WARPF_WARPINTERPOLATION = 0x20,
+	WARPF_COPYINTERPOLATION = 0x40,
+
+	WARPF_STOP             = 0x80,
+	WARPF_TOFLOOR          = 0x100,
+	WARPF_TESTONLY         = 0x200,
+	WARPF_ABSOLUTEPOSITION = 0x400,
+	WARPF_BOB              = 0x800,
+	WARPF_MOVEPTR          = 0x1000,
+	WARPF_USEPTR           = 0x2000,
+	WARPF_USETID           = 0x2000,
+};
+
+
 
 //
 // P_MAPUTL
@@ -209,7 +234,11 @@ fixed_t P_AproxDistance (fixed_t dx, fixed_t dy);
 
 inline int P_PointOnLineSide (fixed_t x, fixed_t y, const line_t *line)
 {
-	return DMulScale32 (y-line->v1->y, line->dx, line->v1->x-x, line->dy) > 0;
+	extern int P_VanillaPointOnLineSide(fixed_t x, fixed_t y, const line_t* line);
+
+	return i_compatflags2 & COMPATF2_POINTONLINE
+		? P_VanillaPointOnLineSide(x, y, line)
+		: DMulScale32 (y-line->v1->y, line->dx, line->v1->x-x, line->dy) > 0;
 }
 
 //==========================================================================
@@ -223,7 +252,11 @@ inline int P_PointOnLineSide (fixed_t x, fixed_t y, const line_t *line)
 
 inline int P_PointOnDivlineSide (fixed_t x, fixed_t y, const divline_t *line)
 {
-	return DMulScale32 (y-line->y, line->dx, line->x-x, line->dy) > 0;
+	extern int P_VanillaPointOnDivlineSide(fixed_t x, fixed_t y, const divline_t* line);
+
+	return (i_compatflags2 & COMPATF2_POINTONLINE)
+		? P_VanillaPointOnDivlineSide(x, y, line)
+		: (DMulScale32 (y-line->y, line->dx, line->x-x, line->dy) > 0);
 }
 
 //==========================================================================
@@ -469,7 +502,7 @@ void	P_TraceBleed (int damage, AActor *target);		// random direction version
 bool	P_HitFloor (AActor *thing);
 bool	P_HitWater (AActor *thing, sector_t *sec, fixed_t splashx = FIXED_MIN, fixed_t splashy = FIXED_MIN, fixed_t splashz=FIXED_MIN, bool checkabove = false, bool alert = true);
 void	P_CheckSplash(AActor *self, fixed_t distance);
-void	P_RailAttack (AActor *source, int damage, int offset_xy, fixed_t offset_z = 0, int color1 = 0, int color2 = 0, float maxdiff = 0, int flags = 0, const PClass *puff = NULL, angle_t angleoffset = 0, angle_t pitchoffset = 0, fixed_t distance = 8192*FRACUNIT, int duration = 0, float sparsity = 1.0, float drift = 1.0, const PClass *spawnclass = NULL, int SpiralOffset = 270);	// [RH] Shoot a railgun
+void	P_RailAttack (AActor *source, int damage, int offset_xy, fixed_t offset_z = 0, int color1 = 0, int color2 = 0, double maxdiff = 0, int flags = 0, const PClass *puff = NULL, angle_t angleoffset = 0, angle_t pitchoffset = 0, fixed_t distance = 8192*FRACUNIT, int duration = 0, double sparsity = 1.0, double drift = 1.0, const PClass *spawnclass = NULL, int SpiralOffset = 270);	// [RH] Shoot a railgun
 
 enum	// P_RailAttack / A_RailAttack / A_CustomRailgun / P_DrawRailTrail flags
 {	

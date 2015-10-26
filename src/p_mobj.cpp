@@ -1308,7 +1308,6 @@ void P_ExplodeMissile (AActor *mo, line_t *line, AActor *target)
 					z = mo->z;
 
 					F3DFloor * ffloor=NULL;
-#ifdef _3DFLOORS
 					if (line->sidedef[side^1] != NULL)
 					{
 						sector_t * backsector = line->sidedef[side^1]->sector;
@@ -1328,7 +1327,6 @@ void P_ExplodeMissile (AActor *mo, line_t *line, AActor *target)
 							}
 						}
 					}
-#endif
 
 					DImpactDecal::StaticCreate (base->GetDecal (),
 						x, y, z, line->sidedef[side], ffloor);
@@ -2156,7 +2154,6 @@ explode:
 			{
 				if (mo->dropoffz != mo->floorz) // 3DMidtex or other special cases that must be excluded
 				{
-#ifdef _3DFLOORS
 					unsigned i;
 					for(i=0;i<mo->Sector->e->XFloor.ffloors.Size();i++)
 					{
@@ -2167,7 +2164,6 @@ explode:
 						if (rover->flags&FF_SOLID && rover->top.plane->ZatPoint(mo->x,mo->y)==mo->floorz) break;
 					}
 					if (i==mo->Sector->e->XFloor.ffloors.Size()) 
-#endif
 						return oldfloorz;
 				}
 			}
@@ -3559,12 +3555,8 @@ void AActor::Tick ()
 		{
 			secplane_t floorplane;
 
-#ifdef _3DFLOORS
 			// Check 3D floors as well
 			floorplane = P_FindFloorPlane(floorsector, x, y, floorz);
-#else
-			floorplane = floorsector->floorplane;
-#endif
 
 			if (floorplane.c < STEEPSLOPE &&
 				floorplane.ZatPoint (x, y) <= floorz)
@@ -3881,7 +3873,6 @@ bool AActor::UpdateWaterLevel (fixed_t oldz, bool dosplash)
 				reset = true;
 			}
 		}
-#ifdef _3DFLOORS
 		else
 		{
 			// Check 3D floors as well!
@@ -3915,7 +3906,6 @@ bool AActor::UpdateWaterLevel (fixed_t oldz, bool dosplash)
 				break;
 			}
 		}
-#endif
 	}
 		
 	// some additional checks to make deep sectors like Boom's splash without setting
@@ -5363,7 +5353,6 @@ bool P_HitWater (AActor * thing, sector_t * sec, fixed_t x, fixed_t y, fixed_t z
 	}
 #endif
 
-#ifdef _3DFLOORS
 	for(unsigned int i=0;i<sec->e->XFloor.ffloors.Size();i++)
 	{		
 		F3DFloor * rover = sec->e->XFloor.ffloors[i];
@@ -5380,7 +5369,6 @@ bool P_HitWater (AActor * thing, sector_t * sec, fixed_t x, fixed_t y, fixed_t z
 		planez = rover->bottom.plane->ZatPoint(x, y);
 		if (planez < z && !(planez < thing->floorz)) return false;
 	}
-#endif
 	hsec = sec->GetHeightSec();
 	if (hsec == NULL || !(hsec->MoreFlags & SECF_CLIPFAKEPLANES))
 	{
@@ -5390,9 +5378,7 @@ bool P_HitWater (AActor * thing, sector_t * sec, fixed_t x, fixed_t y, fixed_t z
 	{
 		terrainnum = TerrainTypes[hsec->GetTexture(sector_t::floor)];
 	}
-#ifdef _3DFLOORS
 foundone:
-#endif
 
 	int splashnum = Terrains[terrainnum].Splash;
 	bool smallsplash = false;
@@ -5495,7 +5481,6 @@ bool P_HitFloor (AActor *thing)
 			break;
 		}
 
-#ifdef _3DFLOORS
 		// Check 3D floors
 		for(unsigned int i=0;i<m->m_sector->e->XFloor.ffloors.Size();i++)
 		{		
@@ -5509,7 +5494,6 @@ bool P_HitFloor (AActor *thing)
 				}
 			}
 		}
-#endif
 	}
 	if (m == NULL || m->m_sector->GetHeightSec() != NULL)
 	{ 
@@ -5931,7 +5915,7 @@ AActor *P_SpawnPlayerMissile (AActor *source, const PClass *type, angle_t angle)
 
 AActor *P_SpawnPlayerMissile (AActor *source, fixed_t x, fixed_t y, fixed_t z,
 							  const PClass *type, angle_t angle, AActor **pLineTarget, AActor **pMissileActor,
-							  bool nofreeaim)
+							  bool nofreeaim, bool noautoaim)
 {
 	static const int angdiff[3] = { -1<<26, 1<<26, 0 };
 	angle_t an = angle;
@@ -5944,7 +5928,7 @@ AActor *P_SpawnPlayerMissile (AActor *source, fixed_t x, fixed_t y, fixed_t z,
 	{
 		return NULL;
 	}
-	if (source->player && source->player->ReadyWeapon && (source->player->ReadyWeapon->WeaponFlags & WIF_NOAUTOAIM))
+	if (source->player && source->player->ReadyWeapon && ((source->player->ReadyWeapon->WeaponFlags & WIF_NOAUTOAIM) || noautoaim))
 	{
 		// Keep exactly the same angle and pitch as the player's own aim
 		an = angle;

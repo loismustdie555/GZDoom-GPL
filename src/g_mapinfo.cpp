@@ -314,7 +314,7 @@ FString level_info_t::LookupLevelName()
 				checkstring[0] = '\0';
 			}
 			thename = strstr (lookedup, checkstring);
-			if (thename == NULL || thename == lookedup)
+			if (thename == NULL)
 			{
 				thename = lookedup;
 			}
@@ -1329,6 +1329,7 @@ MapFlagHandlers[] =
 	{ "compat_badangles",				MITYPE_COMPATFLAG, 0, COMPATF2_BADANGLES },
 	{ "compat_floormove",				MITYPE_COMPATFLAG, 0, COMPATF2_FLOORMOVE },
 	{ "compat_soundcutoff",				MITYPE_COMPATFLAG, 0, COMPATF2_SOUNDCUTOFF },
+	{ "compat_pointonline",				MITYPE_COMPATFLAG, 0, COMPATF2_POINTONLINE },
 	{ "cd_start_track",					MITYPE_EATNEXT,	0, 0 },
 	{ "cd_end1_track",					MITYPE_EATNEXT,	0, 0 },
 	{ "cd_end2_track",					MITYPE_EATNEXT,	0, 0 },

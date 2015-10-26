@@ -1555,11 +1555,14 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SkullPop)
 	if (player != NULL)
 	{
 		player->mo = mo;
-		if (player->camera == self)
-		{
-			player->camera = mo;
-		}
 		player->damagecount = 32;
+	}
+	for (int i = 0; i < MAXPLAYERS; ++i)
+	{
+		if (playeringame[i] && players[i].camera == self)
+		{
+			players[i].camera = mo;
+		}
 	}
 }
 
@@ -2528,7 +2531,13 @@ void P_PlayerThink (player_t *player)
 		{
 			P_PlayerInSpecialSector (player);
 		}
-		P_PlayerOnSpecialFlat (player, P_GetThingFloorType (player->mo));
+		if (player->mo->z <= player->mo->Sector->floorplane.ZatPoint(
+			player->mo->x, player->mo->y) ||
+			player->mo->waterlevel)
+		{
+			// Player must be touching the floor
+			P_PlayerOnSpecialFlat(player, P_GetThingFloorType(player->mo));
+		}
 		if (player->mo->velz <= -player->mo->FallingScreamMinSpeed &&
 			player->mo->velz >= -player->mo->FallingScreamMaxSpeed && !player->morphTics &&
 			player->mo->waterlevel == 0)
