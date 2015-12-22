@@ -232,6 +232,7 @@ protected:
 private:
 	void RenameSprites();
 	void RenameNerve();
+	void FixMacHexen();
 	void DeleteAll();
 };
 
