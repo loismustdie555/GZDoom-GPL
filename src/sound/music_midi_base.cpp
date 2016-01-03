@@ -22,17 +22,17 @@ static void AddDefaultMidiDevices(FOptionValues *opt)
 	FOptionValues::Pair *pair = &opt->mValues[opt->mValues.Reserve(NUM_DEF_DEVICES)];
 #ifdef HAVE_FLUIDSYNTH
 	pair[0].Text = "FluidSynth";
-	pair[0].Value = -4.0;
+	pair[0].Value = -5.0;
 	p = 1;
 #else
 	p = 0;
 #endif
-	pair[p].Text = "GUS";
-	pair[p].Value = -3.0;
-	pair[p+1].Text = "TiMidity++";
-	pair[p+1].Value = -2.0;
-	pair[p+2].Text = "WildMidi";
-	pair[p+2].Value = -6.0;
+	pair[p].Text = "WildMidi";
+	pair[p].Value = -4.0;
+	pair[p+1].Text = "GUS";
+	pair[p+1].Value = -3.0;
+	pair[p+2].Text = "TiMidity++";
+	pair[p+2].Value = -2.0;
 	pair[p+3].Text = "Sound System";
 	pair[p+3].Value = -1.0;
 }
@@ -165,11 +165,11 @@ CCMD (snd_listmididevices)
 	MIDIOUTCAPS caps;
 	MMRESULT res;
 
-	PrintMidiDevice (-6, "WildMidi", MOD_SWSYNTH, 0);
 #ifdef HAVE_FLUIDSYNTH
-	PrintMidiDevice (-4, "FluidSynth", MOD_SWSYNTH, 0);
+	PrintMidiDevice (-5, "FluidSynth", MOD_SWSYNTH, 0);
 #endif
-	PrintMidiDevice (-3, "Gravis Ultrasound Emulation", MOD_SWSYNTH, 0);
+	PrintMidiDevice(-4, "WildMidi", MOD_SWSYNTH, 0);
+	PrintMidiDevice(-3, "Gravis Ultrasound Emulation", MOD_SWSYNTH, 0);
 	PrintMidiDevice (-2, "TiMidity++", MOD_SWSYNTH, 0);
 	PrintMidiDevice (-1, "Sound System", 0, 0);
 	if (nummididevices != 0)
@@ -210,10 +210,10 @@ void I_BuildMIDIMenuList (FOptionValues *opt)
 
 CCMD (snd_listmididevices)
 {
-	Printf("%s-6. WildMidi\n", -6 == snd_mididevice ? TEXTCOLOR_BOLD : "");
 #ifdef HAVE_FLUIDSYNTH
-	Printf("%s-4. FluidSynth\n", -4 == snd_mididevice ? TEXTCOLOR_BOLD : "");
+	Printf("%s-5. FluidSynth\n", -4 == snd_mididevice ? TEXTCOLOR_BOLD : "");
 #endif
+	Printf("%s-4. WildMidi\n", -6 == snd_mididevice ? TEXTCOLOR_BOLD : "");
 	Printf("%s-3. Gravis Ultrasound Emulation\n", -3 == snd_mididevice ? TEXTCOLOR_BOLD : "");
 	Printf("%s-2. TiMidity++\n", -2 == snd_mididevice ? TEXTCOLOR_BOLD : "");
 	Printf("%s-1. Sound System\n", -1 == snd_mididevice ? TEXTCOLOR_BOLD : "");

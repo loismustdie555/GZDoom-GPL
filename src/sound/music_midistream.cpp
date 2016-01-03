@@ -232,10 +232,10 @@ EMidiDevice MIDIStreamer::SelectMIDIDevice(EMidiDevice device)
 	case -1:		return MDEV_SNDSYS;
 	case -2:		return MDEV_TIMIDITY;
 	case -3:		return MDEV_GUS;
+	case -4:		return MDEV_WILDMIDI;
 #ifdef HAVE_FLUIDSYNTH
-	case -4:		return MDEV_FLUIDSYNTH;
+	case -5:		return MDEV_FLUIDSYNTH;
 #endif
-	case -6:		return MDEV_WILDMIDI;
 	default:
 		#ifdef _WIN32
 					return MDEV_MMAPI;
