@@ -389,10 +389,22 @@ enum EMidiDevice
 	MDEV_TIMIDITY = 2,
 	MDEV_FLUIDSYNTH = 3,
 	MDEV_GUS = 4,
+	MDEV_WILDMIDI = 6,
+};
+
+struct MidiDeviceSetting
+{
+	int device;
+	FString args;
+
+	MidiDeviceSetting()
+	{
+		device = MDEV_DEFAULT;
+	}
 };
 
 typedef TMap<FName, FName> MusicAliasMap;
-typedef TMap<FName, int> MidiDeviceMap;
+typedef TMap<FName, MidiDeviceSetting> MidiDeviceMap;
 
 extern MusicAliasMap MusicAliases;
 extern MidiDeviceMap MidiDevices;

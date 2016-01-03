@@ -105,6 +105,7 @@
 				MapExports="true"
 				SubSystem="2"
 				StackReserveSize="0"
+				LargeAddressAware="2"
 				TerminalServerAware="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
@@ -221,6 +222,7 @@
 				MapExports="true"
 				SubSystem="2"
 				StackReserveSize="0"
+				LargeAddressAware="2"
 				TerminalServerAware="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
@@ -329,6 +331,7 @@
 				ProgramDatabaseFile=".\Debug/zdoomd.pdb"
 				SubSystem="2"
 				StackReserveSize="0"
+				LargeAddressAware="2"
 				TerminalServerAware="2"
 				SetChecksum="false"
 				TargetMachine="0"
@@ -436,6 +439,7 @@
 				ProgramDatabaseFile=".\Debug/zdoomd.pdb"
 				SubSystem="2"
 				StackReserveSize="0"
+				LargeAddressAware="2"
 				TerminalServerAware="2"
 				SetChecksum="false"
 				TargetMachine="17"
@@ -932,6 +936,10 @@
 			</File>
 			<File
 				RelativePath=".\src\parsecontext.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\pathexpander.cpp"
 				>
 			</File>
 			<File
@@ -1469,6 +1477,10 @@
 			</File>
 			<File
 				RelativePath=".\src\parsecontext.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\pathexpander.h"
 				>
 			</File>
 			<File
@@ -2574,6 +2586,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\sound\music_wildmidi_mididevice.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\sound\music_win_mididevice.cpp"
 				>
 			</File>
@@ -2769,6 +2785,62 @@
 					</File>
 					<File
 						RelativePath=".\src\timidity\timidity.cpp"
+						>
+					</File>
+				</Filter>
+			</Filter>
+			<Filter
+				Name="WildMidi"
+				>
+				<Filter
+					Name="Headers"
+					>
+					<File
+						RelativePath=".\src\wildmidi\common.h"
+						>
+					</File>
+					<File
+						RelativePath=".\src\wildmidi\file_io.h"
+						>
+					</File>
+					<File
+						RelativePath=".\src\wildmidi\gus_pat.h"
+						>
+					</File>
+					<File
+						RelativePath=".\src\wildmidi\reverb.h"
+						>
+					</File>
+					<File
+						RelativePath=".\src\wildmidi\wildmidi_lib.h"
+						>
+					</File>
+					<File
+						RelativePath=".\src\wildmidi\wm_error.h"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="Source"
+					>
+					<File
+						RelativePath=".\src\wildmidi\file_io.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\src\wildmidi\gus_pat.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\src\wildmidi\reverb.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\src\wildmidi\wildmidi_lib.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\src\wildmidi\wm_error.cpp"
 						>
 					</File>
 				</Filter>

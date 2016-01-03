@@ -67,6 +67,8 @@
 #include "gl/scene/gl_drawinfo.h"
 #include "gl/scene/gl_portal.h"
 #include "gl/shaders/gl_shader.h"
+#include "gl/stereo3d/gl_stereo3d.h"
+#include "gl/stereo3d/scoped_view_shifter.h"
 #include "gl/textures/gl_material.h"
 #include "gl/utility/gl_clock.h"
 #include "gl/utility/gl_convert.h"
@@ -247,6 +249,14 @@ void FGLRenderer::SetProjection(float fov, float ratio, float fovratio)
 
 	float fovy = 2 * RAD2DEG(atan(tan(DEG2RAD(fov) / 2) / fovratio));
 	gl_RenderState.mProjectionMatrix.perspective(fovy, ratio, 5.f, 65536.f);
+	gl_RenderState.Set2DMode(false);
+}
+
+// raw matrix input from stereo 3d modes
+void FGLRenderer::SetProjection(VSMatrix matrix)
+{
+	gl_RenderState.mProjectionMatrix.loadIdentity();
+	gl_RenderState.mProjectionMatrix.multMatrix(matrix);
 	gl_RenderState.Set2DMode(false);
 }
 
@@ -798,18 +808,36 @@ sector_t * FGLRenderer::RenderViewpoint (AActor * camera, GL_IRECT * bounds, flo
 
 	retval = viewsector;
 
-	SetViewport(bounds);
-	mCurrentFoV = fov;
-	SetProjection(fov, ratio, fovratio);	// switch to perspective mode and set up clipper
-	SetViewAngle(viewangle);
-	SetViewMatrix(viewx, viewy, viewz, false, false);
-	gl_RenderState.ApplyMatrices();
+	// Render (potentially) multiple views for stereo 3d
+	float viewShift[3];
+	const s3d::Stereo3DMode& stereo3dMode = s3d::Stereo3DMode::getCurrentMode();
+	stereo3dMode.SetUp();
+	for (int eye_ix = 0; eye_ix < stereo3dMode.eye_count(); ++eye_ix)
+	{
+		const s3d::EyePose * eye = stereo3dMode.getEyePose(eye_ix);
+		eye->SetUp();
+		// TODO: stereo specific viewport - needed when implementing side-by-side modes etc.
+		SetViewport(bounds);
+		mCurrentFoV = fov;
+		// Stereo mode specific perspective projection
+		SetProjection( eye->GetProjection(fov, ratio, fovratio) );
+		// SetProjection(fov, ratio, fovratio);	// switch to perspective mode and set up clipper
+		SetViewAngle(viewangle);
+		// Stereo mode specific viewpoint adjustment - temporarily shifts global viewx, viewy, viewz
+		eye->GetViewShift(GLRenderer->mAngles.Yaw, viewShift);
+		s3d::ScopedViewShifter viewShifter(viewShift);
+		SetViewMatrix(viewx, viewy, viewz, false, false);
+		gl_RenderState.ApplyMatrices();
 
-	clipper.Clear();
-	angle_t a1 = FrustumAngle();
-	clipper.SafeAddClipRangeRealAngles(viewangle+a1, viewangle-a1);
+		clipper.Clear();
+		angle_t a1 = FrustumAngle();
+		clipper.SafeAddClipRangeRealAngles(viewangle + a1, viewangle - a1);
 
-	ProcessScene(toscreen);
+		ProcessScene(toscreen);
+		EndDrawScene(viewsector);
+		eye->TearDown();
+	}
+	stereo3dMode.TearDown();
 
 	gl_frameCount++;	// This counter must be increased right before the interpolations are restored.
 	interpolator.RestoreInterpolations ();
@@ -879,7 +907,6 @@ void FGLRenderer::RenderView (player_t* player)
 	GLRenderer->mLightCount = ((it.Next()) != NULL);
 
 	sector_t * viewsector = RenderViewpoint(player->camera, NULL, FieldOfView * 360.0f / FINEANGLES, ratio, fovratio, true, true);
-	EndDrawScene(viewsector);
 
 	All.Unclock();
 }
