@@ -1537,23 +1537,11 @@ OptionValue GusMemory
 	4, "1024K"
 }
 
-OptionValue OplCores
-{
-	0, "MAME OPL2"
-	1, "DOSBox OPL3"
-	2, "Java OPL3"
-	3, "Nuked OPL3"
-}
 
 OptionMenu AdvSoundOptions
 {
 	Title "ADVANCED SOUND OPTIONS"
 	Option "Sample rate",			"snd_samplerate", "SampleRates"
-	StaticText " "
-	StaticText "OPL Synthesis",	1
-	Slider "Number of emulated OPL chips", "opl_numchips", 1, 8, 1, 0
-	Option "Full MIDI stereo panning", "opl_fullpan", "OnOff"
-	Option "OPL Emulator Core", "opl_core", "OplCores"
 	StaticText " "
 	StaticText "GUS Emulation",	1
 	TextField "GUS config file", "midi_config"
