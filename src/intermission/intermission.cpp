@@ -325,6 +325,7 @@ void DIntermissionScreenText::Drawer ()
 		int c;
 		const FRemapTable *range;
 		const char *ch = mText;
+		const int kerning = SmallFont->GetDefaultKerning();
 
 		// Count number of rows in this text. Since it does not word-wrap, we just count
 		// line feed characters.
@@ -376,6 +377,7 @@ void DIntermissionScreenText::Drawer ()
 			}
 
 			pic = SmallFont->GetChar (c, &w);
+			w += kerning;
 			w *= CleanXfac;
 			if (cx + w > SCREENWIDTH)
 				continue;

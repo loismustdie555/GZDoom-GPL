@@ -48,6 +48,8 @@ inline FArchive &operator<< (FArchive &arc, DFloor::EFloor &type)
 
 static void StartFloorSound (sector_t *sec)
 {
+	if (sec->Flags & SECF_SILENTMOVE) return;
+
 	if (sec->seqType >= 0)
 	{
 		SN_StartSequence (sec, CHAN_FLOOR, sec->seqType, SEQ_PLATFORM, 0);
@@ -152,7 +154,7 @@ void DFloor::Tick ()
 				case donutRaise:
 				case genFloorChgT:
 				case genFloorChg0:
-					m_Sector->special = (m_Sector->special & SECRET_MASK) | m_NewSpecial;
+					m_Sector->SetSpecial(&m_NewSpecial);
 					//fall thru
 				case genFloorChg:
 					m_Sector->SetTexture(sector_t::floor, m_Texture);
@@ -168,7 +170,7 @@ void DFloor::Tick ()
 				case floorLowerAndChange:
 				case genFloorChgT:
 				case genFloorChg0:
-					m_Sector->special = (m_Sector->special & SECRET_MASK) | m_NewSpecial;
+					m_Sector->SetSpecial(&m_NewSpecial);
 					//fall thru
 				case genFloorChg:
 					m_Sector->SetTexture(sector_t::floor, m_Texture);
@@ -226,14 +228,14 @@ void DFloor::SetFloorChangeType (sector_t *sec, int change)
 	switch (change & 3)
 	{
 	case 1:
-		m_NewSpecial = 0;
+		m_NewSpecial.Clear();
 		m_Type = DFloor::genFloorChg0;
 		break;
 	case 2:
 		m_Type = DFloor::genFloorChg;
 		break;
 	case 3:
-		m_NewSpecial = sec->special & ~SECRET_MASK;
+		sec->GetSpecial(&m_NewSpecial);
 		m_Type = DFloor::genFloorChgT;
 		break;
 	}
@@ -431,11 +433,11 @@ bool EV_DoFloor (DFloor::EFloor floortype, line_t *line, int tag,
 			{
 				FTextureID oldpic = sec->GetTexture(sector_t::floor);
 				sec->SetTexture(sector_t::floor, line->frontsector->GetTexture(sector_t::floor));
-				sec->special = (sec->special & SECRET_MASK) | (line->frontsector->special & ~SECRET_MASK);
+				sec->TransferSpecial(line->frontsector);
 			}
 			else
 			{
-				sec->special &= SECRET_MASK;
+				sec->ClearSpecial();
 			}
 			break;
 		  
@@ -446,8 +448,7 @@ bool EV_DoFloor (DFloor::EFloor floortype, line_t *line, int tag,
 			floor->m_Texture = sec->GetTexture(sector_t::floor);
 			// jff 1/24/98 make sure floor->m_NewSpecial gets initialized
 			// in case no surrounding sector is at floordestheight
-			// --> should not affect compatibility <--
-			floor->m_NewSpecial = sec->special & ~SECRET_MASK; 
+			sec->GetSpecial(&floor->m_NewSpecial);
 
 			//jff 5/23/98 use model subroutine to unify fixes and handling
 			sector_t *modelsec;
@@ -455,7 +456,7 @@ bool EV_DoFloor (DFloor::EFloor floortype, line_t *line, int tag,
 			if (modelsec != NULL)
 			{
 				floor->m_Texture = modelsec->GetTexture(sector_t::floor);
-				floor->m_NewSpecial = modelsec->special & ~SECRET_MASK;
+				modelsec->GetSpecial(&floor->m_NewSpecial);
 			}
 			break;
 
@@ -628,7 +629,7 @@ bool EV_BuildStairs (int tag, DFloor::EStair type, line_t *line,
 			{
 				// [RH] Find the next sector by scanning for Stairs_Special?
 				tsec = sec->NextSpecialSector (
-						(sec->special & 0xff) == Stairs_Special1 ?
+						sec->special == Stairs_Special1 ?
 							Stairs_Special2 : Stairs_Special1, prev);
 
 				if ( (ok = (tsec != NULL)) )
@@ -785,7 +786,7 @@ bool EV_DoDonut (int tag, line_t *line, fixed_t pillarspeed, fixed_t slimespeed)
 			floor->m_Sector = s2;
 			floor->m_Speed = slimespeed;
 			floor->m_Texture = s3->GetTexture(sector_t::floor);
-			floor->m_NewSpecial = 0;
+			floor->m_NewSpecial.Clear();
 			height = s3->FindHighestFloorPoint (&spot);
 			floor->m_FloorDestDist = s2->floorplane.PointToDist (spot, height);
 			floor->StartFloorSound ();
@@ -1084,7 +1085,7 @@ bool EV_DoChange (line_t *line, EChange changetype, int tag)
 			if (line)
 			{ // [RH] if no line, no change
 				sec->SetTexture(sector_t::floor, line->frontsector->GetTexture(sector_t::floor));
-				sec->special = (sec->special & SECRET_MASK) | (line->frontsector->special & ~SECRET_MASK);
+				sec->TransferSpecial(line->frontsector);
 			}
 			break;
 		case numChangeOnly:
@@ -1092,7 +1093,7 @@ bool EV_DoChange (line_t *line, EChange changetype, int tag)
 			if (secm)
 			{ // if no model, no change
 				sec->SetTexture(sector_t::floor, secm->GetTexture(sector_t::floor));
-				sec->special = secm->special;
+				sec->TransferSpecial(secm);
 			}
 			break;
 		default:
