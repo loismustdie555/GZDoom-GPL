@@ -278,7 +278,7 @@ private:
 	friend class D3DPal;
 
 	struct PackedTexture;
-	struct PackingTexture;
+	struct Atlas;
 
 	struct FBVERTEX
 	{
@@ -374,6 +374,7 @@ private:
 	static void SetColorOverlay(DWORD color, float alpha, D3DCOLOR &color0, D3DCOLOR &color1);
 	void DoWindowedGamma();
 	void AddColorOnlyQuad(int left, int top, int width, int height, D3DCOLOR color);
+	void AddColorOnlyRect(int left, int top, int width, int height, D3DCOLOR color);
 	void CheckQuadBatch(int numtris=2, int numverts=4);
 	void BeginQuadBatch();
 	void EndQuadBatch();
@@ -391,7 +392,7 @@ private:
 	void SetPixelShader(IDirect3DPixelShader9 *shader);
 	void SetTexture(int tnum, IDirect3DTexture9 *texture);
 	void SetPaletteTexture(IDirect3DTexture9 *texture, int count, D3DCOLOR border_color);
-	void SetPalTexBilinearConstants(PackingTexture *texture);
+	void SetPalTexBilinearConstants(Atlas *texture);
 
 	BOOL AlphaTestEnabled;
 	BOOL AlphaBlendEnabled;
@@ -430,7 +431,7 @@ private:
 	BYTE BlockNum;
 	D3DPal *Palettes;
 	D3DTex *Textures;
-	PackingTexture *Packs;
+	Atlas *Atlases;
 	HRESULT LastHR;
 
 	UINT Adapter;
