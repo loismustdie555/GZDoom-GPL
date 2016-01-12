@@ -362,6 +362,12 @@ enum
 	PLANEF_ABSLIGHTING	= 1,	// floor/ceiling light is absolute, not relative
 	PLANEF_BLOCKED		= 2,	// can not be moved anymore.
 	PLANEF_ADDITIVE		= 4,	// rendered additive
+
+	// linked portal stuff
+	PLANEF_NORENDER		= 8,
+	PLANEF_NOPASS		= 16,
+	PLANEF_BLOCKSOUND	= 32,
+	PLANEF_DISABLED		= 64,
 };
 
 // Internal sector flags
@@ -377,7 +383,7 @@ enum
 	SECF_DRAWN			= 128,	// sector has been drawn at least once
 	SECF_HIDDEN			= 256,	// Do not draw on textured automap
 	SECF_NOFLOORSKYBOX	= 512,	// force use of regular sky 
-	SECF_NOCEILINGSKYBOX	= 1024,	// force use of regular sky 
+	SECF_NOCEILINGSKYBOX	= 1024,	// force use of regular sky (do not separate from NOFLOORSKYBOX!!!)
 };
 
 enum
@@ -837,7 +843,7 @@ struct sector_t
 
 	// [RH] The sky box to render for this sector. NULL means use a
 	// regular sky.
-	TObjPtr<ASkyViewpoint> FloorSkyBox, CeilingSkyBox;
+	TObjPtr<ASkyViewpoint> SkyBoxes[2];
 
 	int							sectornum;			// for comparing sector copies
 
@@ -1051,6 +1057,7 @@ struct line_t
 	sector_t	*frontsector, *backsector;
 	int 		validcount;	// if == validcount, already checked
 	int			locknumber;	// [Dusk] lock number for special
+	TObjPtr<ASkyViewpoint> skybox;
 };
 
 // phares 3/14/98

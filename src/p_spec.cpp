@@ -53,6 +53,10 @@
 #include "farchive.h"
 #include "a_keys.h"
 #include "c_dispatch.h"
+#include "r_sky.h"
+#ifndef NO_EDATA
+#include "edata.h"
+#endif
 
 // State.
 #include "r_state.h"
@@ -62,7 +66,6 @@
 #include "r_data/r_interpolate.h"
 
 static FRandom pr_playerinspecialsector ("PlayerInSpecialSector");
-void P_SetupPortals();
 
 EXTERN_CVAR(Bool, cl_predict_specials)
 
@@ -900,10 +903,10 @@ static void SetupFloorPortal (AStackPoint *point)
 {
 	NActorIterator it (NAME_LowerStackLookOnly, point->tid);
 	sector_t *Sector = point->Sector;
-	Sector->FloorSkyBox = static_cast<ASkyViewpoint*>(it.Next());
-	if (Sector->FloorSkyBox != NULL && Sector->FloorSkyBox->bAlways)
+	Sector->SkyBoxes[sector_t::floor] = static_cast<ASkyViewpoint*>(it.Next());
+	if (Sector->SkyBoxes[sector_t::floor] != NULL && Sector->SkyBoxes[sector_t::floor]->bAlways)
 	{
-		Sector->FloorSkyBox->Mate = point;
+		Sector->SkyBoxes[sector_t::floor]->Mate = point;
 		if (Sector->GetAlpha(sector_t::floor) == OPAQUE)
 			Sector->SetAlpha(sector_t::floor, Scale (point->args[0], OPAQUE, 255));
 	}
@@ -913,46 +916,13 @@ static void SetupCeilingPortal (AStackPoint *point)
 {
 	NActorIterator it (NAME_UpperStackLookOnly, point->tid);
 	sector_t *Sector = point->Sector;
-	Sector->CeilingSkyBox = static_cast<ASkyViewpoint*>(it.Next());
-	if (Sector->CeilingSkyBox != NULL && Sector->CeilingSkyBox->bAlways)
+	Sector->SkyBoxes[sector_t::ceiling] = static_cast<ASkyViewpoint*>(it.Next());
+	if (Sector->SkyBoxes[sector_t::ceiling] != NULL && Sector->SkyBoxes[sector_t::ceiling]->bAlways)
 	{
-		Sector->CeilingSkyBox->Mate = point;
+		Sector->SkyBoxes[sector_t::ceiling]->Mate = point;
 		if (Sector->GetAlpha(sector_t::ceiling) == OPAQUE)
 			Sector->SetAlpha(sector_t::ceiling, Scale (point->args[0], OPAQUE, 255));
 	}
-}
-
-static bool SpreadCeilingPortal(AStackPoint *pt, fixed_t alpha, sector_t *sector)
-{
-	bool fail = false;
-	sector->validcount = validcount;
-	for(int i=0; i<sector->linecount; i++)
-	{
-		line_t *line = sector->lines[i];
-		sector_t *backsector = sector == line->frontsector? line->backsector : line->frontsector;
-		if (line->backsector == line->frontsector) continue;
-		if (backsector == NULL) { fail = true; continue; }
-		if (backsector->validcount == validcount) continue;
-		if (backsector->CeilingSkyBox == pt) continue;
-
-		// Check if the backside would map to the same visplane
-		if (backsector->CeilingSkyBox != NULL) { fail = true; continue; }
-		if (backsector->ceilingplane != sector->ceilingplane) { fail = true; continue; }
-		if (backsector->lightlevel != sector->lightlevel) { fail = true; continue; }
-		if (backsector->GetTexture(sector_t::ceiling)		!= sector->GetTexture(sector_t::ceiling)) { fail = true; continue; }
-		if (backsector->GetXOffset(sector_t::ceiling)		!= sector->GetXOffset(sector_t::ceiling)) { fail = true; continue; }
-		if (backsector->GetYOffset(sector_t::ceiling)		!= sector->GetYOffset(sector_t::ceiling)) { fail = true; continue; }
-		if (backsector->GetXScale(sector_t::ceiling)		!= sector->GetXScale(sector_t::ceiling)) { fail = true; continue; }
-		if (backsector->GetYScale(sector_t::ceiling)		!= sector->GetYScale(sector_t::ceiling)) { fail = true; continue; }
-		if (backsector->GetAngle(sector_t::ceiling)		!= sector->GetAngle(sector_t::ceiling)) { fail = true; continue; }
-		if (SpreadCeilingPortal(pt, alpha, backsector)) { fail = true; continue; }
-	}
-	if (!fail) 
-	{
-		sector->CeilingSkyBox = pt;
-		sector->SetAlpha(sector_t::ceiling, alpha);
-	}
-	return fail;
 }
 
 void P_SetupPortals()
@@ -977,26 +947,81 @@ void P_SetupPortals()
 	}
 }
 
-inline void SetPortal(sector_t *sector, int plane, AStackPoint *portal, fixed_t alpha)
+static void SetPortal(sector_t *sector, int plane, ASkyViewpoint *portal, fixed_t alpha)
 {
 	// plane: 0=floor, 1=ceiling, 2=both
 	if (plane > 0)
 	{
-		if (sector->CeilingSkyBox == NULL || !sector->CeilingSkyBox->bAlways) 
+		if (sector->SkyBoxes[sector_t::ceiling] == NULL || !sector->SkyBoxes[sector_t::ceiling]->bAlways) 
 		{
-			sector->CeilingSkyBox = portal;
+			sector->SkyBoxes[sector_t::ceiling] = portal;
 			if (sector->GetAlpha(sector_t::ceiling) == OPAQUE)
 				sector->SetAlpha(sector_t::ceiling, alpha);
+
+			if (!portal->bAlways) sector->SetTexture(sector_t::ceiling, skyflatnum);
 		}
 	}
 	if (plane == 2 || plane == 0)
 	{
-		if (sector->FloorSkyBox == NULL || !sector->FloorSkyBox->bAlways) 
+		if (sector->SkyBoxes[sector_t::floor] == NULL || !sector->SkyBoxes[sector_t::floor]->bAlways) 
 		{
-			sector->FloorSkyBox = portal;
+			sector->SkyBoxes[sector_t::floor] = portal;
 		}
 		if (sector->GetAlpha(sector_t::floor) == OPAQUE)
 			sector->SetAlpha(sector_t::floor, alpha);
+
+		if (!portal->bAlways) sector->SetTexture(sector_t::floor, skyflatnum);
+	}
+}
+
+static void CopyPortal(int sectortag, int plane, ASkyViewpoint *origin, fixed_t alpha, bool tolines)
+{
+	int s;
+	FSectorTagIterator itr(sectortag);
+	while ((s = itr.Next()) >= 0)
+	{
+		SetPortal(&sectors[s], plane, origin, alpha);
+	}
+
+	for (int j=0;j<numlines;j++)
+	{
+		// Check if this portal needs to be copied to other sectors
+		// This must be done here to ensure that it gets done only after the portal is set up
+		if (lines[j].special == Sector_SetPortal &&
+			lines[j].args[1] == 1 &&
+			(lines[j].args[2] == plane || lines[j].args[2] == 3) &&
+			lines[j].args[3] == sectortag)
+		{
+			if (lines[j].args[0] == 0)
+			{
+				SetPortal(lines[j].frontsector, plane, origin, alpha);
+			}
+			else
+			{
+				FSectorTagIterator itr(lines[j].args[0]);
+				while ((s = itr.Next()) >= 0)
+				{
+					SetPortal(&sectors[s], plane, origin, alpha);
+				}
+			}
+		}
+		if (tolines && lines[j].special == Sector_SetPortal &&
+			lines[j].args[1] == 5 &&
+			lines[j].args[3] == sectortag)
+		{
+			if (lines[j].args[0] == 0)
+			{
+				lines[j].skybox = origin;
+			}
+			else
+			{
+				FLineIdIterator itr(lines[j].args[0]);
+				while ((s = itr.Next()) >= 0)
+				{
+					lines[s].skybox = origin;
+				}
+			}
+		}
 	}
 }
 
@@ -1030,41 +1055,38 @@ void P_SpawnPortal(line_t *line, int sectortag, int plane, int alpha)
 			reference->flags |= MF_JUSTATTACKED;
 			anchor->flags |= MF_JUSTATTACKED;
 
-			int s;
-			FSectorTagIterator itr(sectortag);
-			while ((s = itr.Next()) >= 0)
-			{
-				SetPortal(&sectors[s], plane, reference, alpha);
-			}
-
-			for (int j=0;j<numlines;j++)
-			{
-				// Check if this portal needs to be copied to other sectors
-				// This must be done here to ensure that it gets done only after the portal is set up
-				if (lines[j].special == Sector_SetPortal &&
-					lines[j].args[1] == 1 &&
-					(lines[j].args[2] == plane || lines[j].args[2] == 3) &&
-					lines[j].args[3] == sectortag)
-				{
-					if (lines[j].args[0] == 0)
-					{
-						SetPortal(lines[j].frontsector, plane, reference, alpha);
-					}
-					else
-					{
-						FSectorTagIterator itr(lines[j].args[0]);
-						while ((s = itr.Next()) >= 0)
-						{
-							SetPortal(&sectors[s], plane, reference, alpha);
-						}
-					}
-				}
-			}
-
+			CopyPortal(sectortag, plane, reference, alpha, false);
 			return;
 		}
 	}
 }
+
+// This searches the viewpoint's sector
+// for a skybox line special, gets its tag and transfers the skybox to all tagged sectors.
+void P_SpawnSkybox(ASkyViewpoint *origin)
+{
+	sector_t *Sector = origin->Sector;
+	if (Sector == NULL)
+	{
+		Printf("Sector not initialized for SkyCamCompat\n");
+		origin->Sector = Sector = P_PointInSector(origin->x, origin->y);
+	}
+	if (Sector)
+	{
+		line_t * refline = NULL;
+		for (short i = 0; i < Sector->linecount; i++)
+		{
+			refline = Sector->lines[i];
+			if (refline->special == Sector_SetPortal && refline->args[1] == 2)
+			{
+				// We found the setup linedef for this skybox, so let's use it for our init.
+				CopyPortal(refline->args[0], refline->args[2], origin, 0, true);
+				return;
+			}
+		}
+	}
+}
+
 
 
 //
@@ -1304,6 +1326,7 @@ void P_SpawnSpecials (void)
 
 	//	Init special SECTORs.
 	sector = sectors;
+
 	for (i = 0; i < numsectors; i++, sector++)
 	{
 		if (sector->special == 0)
@@ -1311,12 +1334,24 @@ void P_SpawnSpecials (void)
 
 		P_InitSectorSpecial(sector, sector->special, false);
 	}
+
+#ifndef NO_EDATA
+	ProcessEDSectors();
+#endif
+
 	
 	// Init other misc stuff
 
 	P_SpawnScrollers(); // killough 3/7/98: Add generalized scrollers
 	P_SpawnFriction();	// phares 3/12/98: New friction model using linedefs
 	P_SpawnPushers();	// phares 3/20/98: New pusher model using linedefs
+
+	TThinkerIterator<ASkyCamCompat> it2;
+	ASkyCamCompat *pt2;
+	while ((pt2 = it2.Next()))
+	{
+		P_SpawnSkybox(pt2);
+	}
 
 	for (i = 0; i < numlines; i++)
 	{
@@ -1399,6 +1434,8 @@ void P_SpawnSpecials (void)
 			//	- 0: normal (handled here)
 			//	- 1: copy (handled by the portal they copy)
 			//	- 2: EE-style skybox (handled by the camera object)
+			//  - 3: EE-style flat portal (HW renderer only for now)
+			//  - 4: EE-style horizon portal (HW renderer only for now)
 			//	other values reserved for later use
 			// arg 2 = 0:floor, 1:ceiling, 2:both
 			// arg 3 = 0: anchor, 1: reference line
@@ -1406,6 +1443,15 @@ void P_SpawnSpecials (void)
 			if (lines[i].args[1] == 0 && lines[i].args[3] == 0)
 			{
 				P_SpawnPortal(&lines[i], lines[i].args[0], lines[i].args[2], lines[i].args[4]);
+			}
+			else if (lines[i].args[1] == 3 || lines[i].args[1] == 4)
+			{
+				line_t *line = &lines[i];
+				ASkyViewpoint *origin = Spawn<ASkyViewpoint>(0, 0, 0, NO_REPLACE);
+				origin->Sector = line->frontsector;
+				origin->special1 = line->args[1] == 3? SKYBOX_PLANE:SKYBOX_HORIZON;
+
+				CopyPortal(line->args[0], line->args[2], origin, 0, true);
 			}
 			break;
 
@@ -2216,7 +2262,7 @@ void DPusher::Tick ()
 			{
 				int sx = m_X;
 				int sy = m_Y;
-				int dist = P_AproxDistance (thing->x - sx,thing->y - sy);
+				int dist = thing->AproxDistance (sx, sy);
 				int speed = (m_Magnitude - ((dist>>FRACBITS)>>1))<<(FRACBITS-PUSH_FACTOR-1);
 
 				// If speed <= 0, you're outside the effective radius. You also have
@@ -2224,7 +2270,7 @@ void DPusher::Tick ()
 
 				if ((speed > 0) && (P_CheckSight (thing, m_Source, SF_IGNOREVISIBILITY)))
 				{
-					angle_t pushangle = R_PointToAngle2 (thing->x, thing->y, sx, sy);
+					angle_t pushangle = thing->AngleTo(sx, sy);
 					if (m_Source->GetClass()->TypeName == NAME_PointPusher)
 						pushangle += ANG180;    // away
 					pushangle >>= ANGLETOFINESHIFT;

@@ -798,16 +798,8 @@ int sector_t::GetCeilingLight () const
 
 ASkyViewpoint *sector_t::GetSkyBox(int which)
 {
-	if (which == floor)
-	{
-		if (FloorSkyBox != NULL) return FloorSkyBox;
-		if (MoreFlags & SECF_NOFLOORSKYBOX) return NULL;
-	}
-	else
-	{
-		if (CeilingSkyBox != NULL) return CeilingSkyBox;
-		if (MoreFlags & SECF_NOCEILINGSKYBOX) return NULL;
-	}
+	if (SkyBoxes[which] != NULL) return SkyBoxes[which];
+	if (MoreFlags & (SECF_NOFLOORSKYBOX << which)) return NULL;
 	return level.DefaultSkybox;
 }
 
@@ -876,7 +868,7 @@ FArchive &operator<< (FArchive &arc, secspecial_t &p)
 {
 	if (SaveVersion < 4529)
 	{
-		short special;
+		int special;
 		arc << special;
 		sector_t sec;
 		P_InitSectorSpecial(&sec, special, true);

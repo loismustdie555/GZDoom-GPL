@@ -19,6 +19,12 @@
 
 #include "textures/textures.h"
 
+enum
+{
+	SKYBOX_MAP = 0,
+	SKYBOX_PLANE,
+	SKYBOX_HORIZON
+};
 
 extern FTextureID	skyflatnum;
 extern fixed_t		sky1cyl,		sky2cyl;

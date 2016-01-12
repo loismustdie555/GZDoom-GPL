@@ -64,6 +64,7 @@ const char *SpecialMapthingNames[] = {
 	"$CopyCeilingPlane",
 	"$VertexFloorZ",
 	"$VertexCeilingZ",
+	"$EDFThing",
 
 };
 //==========================================================================
