@@ -2433,7 +2433,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FadeIn)
 		if (flags & FTF_CLAMP)
 			self->alpha = (FRACUNIT * 1);
 		if (flags & FTF_REMOVE)
-			self->Destroy();
+			P_RemoveThing(self);
 	}
 }
 
@@ -2461,7 +2461,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FadeOut)
 		if (flags & FTF_CLAMP)
 			self->alpha = 0;
 		if (flags & FTF_REMOVE)
-			self->Destroy();
+			P_RemoveThing(self);
 	}
 }
 
@@ -2509,7 +2509,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FadeTo)
 	}
 	if (self->alpha == target && (flags & FTF_REMOVE))
 	{
-		self->Destroy();
+		P_RemoveThing(self);
 	}
 }
 

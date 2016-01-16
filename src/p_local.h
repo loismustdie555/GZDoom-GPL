@@ -243,6 +243,12 @@ inline int P_PointOnLineSide (fixed_t x, fixed_t y, const line_t *line)
 		: DMulScale32 (y-line->v1->y, line->dx, line->v1->x-x, line->dy) > 0;
 }
 
+inline int P_PointOnLineSidePrecise (fixed_t x, fixed_t y, const line_t *line)
+{
+	return DMulScale32 (y-line->v1->y, line->dx, line->v1->x-x, line->dy) > 0;
+}
+
+
 //==========================================================================
 //
 // P_PointOnDivlineSide
@@ -260,6 +266,12 @@ inline int P_PointOnDivlineSide (fixed_t x, fixed_t y, const divline_t *line)
 		? P_VanillaPointOnDivlineSide(x, y, line)
 		: (DMulScale32 (y-line->y, line->dx, line->x-x, line->dy) > 0);
 }
+
+inline int P_PointOnDivlineSidePrecise (fixed_t x, fixed_t y, const divline_t *line)
+{
+	return DMulScale32 (y-line->y, line->dx, line->x-x, line->dy) > 0;
+}
+
 
 //==========================================================================
 //
@@ -362,7 +374,6 @@ class FPathTraverse
 	divline_t trace;
 	unsigned int intercept_index;
 	unsigned int intercept_count;
-	fixed_t maxfrac;
 	unsigned int count;
 
 	void AddLineIntercepts(int bx, int by);
