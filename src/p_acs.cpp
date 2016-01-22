@@ -77,6 +77,7 @@
 #include "decallib.h"
 #include "p_terrain.h"
 #include "version.h"
+#include "p_effect.h"
 
 #include "g_shared/a_pickups.h"
 
@@ -3441,12 +3442,12 @@ int DLevelScript::DoSpawnSpot (int type, int spot, int tid, int angle, bool forc
 
 		while ( (aspot = iterator.Next ()) )
 		{
-			spawned += DoSpawn (type, aspot->x, aspot->y, aspot->z, tid, angle, force);
+			spawned += DoSpawn (type, aspot->X(), aspot->Y(), aspot->Z(), tid, angle, force);
 		}
 	}
 	else if (activator != NULL)
 	{
-			spawned += DoSpawn (type, activator->x, activator->y, activator->z, tid, angle, force);
+			spawned += DoSpawn (type, activator->X(), activator->Y(), activator->Z(), tid, angle, force);
 	}
 	return spawned;
 }
@@ -3462,12 +3463,12 @@ int DLevelScript::DoSpawnSpotFacing (int type, int spot, int tid, bool force)
 
 		while ( (aspot = iterator.Next ()) )
 		{
-			spawned += DoSpawn (type, aspot->x, aspot->y, aspot->z, tid, aspot->angle >> 24, force);
+			spawned += DoSpawn (type, aspot->X(), aspot->Y(), aspot->Z(), tid, aspot->angle >> 24, force);
 		}
 	}
 	else if (activator != NULL)
 	{
-			spawned += DoSpawn (type, activator->x, activator->y, activator->z, tid, activator->angle >> 24, force);
+			spawned += DoSpawn (type, activator->X(), activator->Y(), activator->Z(), tid, activator->angle >> 24, force);
 	}
 	return spawned;
 }
@@ -4145,7 +4146,7 @@ bool DLevelScript::DoCheckActorTexture(int tid, AActor *activator, int string, b
 			F3DFloor *ff = sec->e->XFloor.ffloors[i];
 
 			if ((ff->flags & (FF_EXISTS | FF_SOLID)) == (FF_EXISTS | FF_SOLID) &&
-				actor->z >= ff->top.plane->ZatPoint(actor->x, actor->y))
+				actor->Z() >= ff->top.plane->ZatPoint(actor))
 			{ // This floor is beneath our feet.
 				secpic = *ff->top.texture;
 				break;
@@ -4158,14 +4159,14 @@ bool DLevelScript::DoCheckActorTexture(int tid, AActor *activator, int string, b
 	}
 	else
 	{
-		fixed_t z = actor->z + actor->height;
+		fixed_t z = actor->Top();
 		// Looking through planes from bottom to top
 		for (i = numff-1; i >= 0; --i)
 		{
 			F3DFloor *ff = sec->e->XFloor.ffloors[i];
 
 			if ((ff->flags & (FF_EXISTS | FF_SOLID)) == (FF_EXISTS | FF_SOLID) &&
-				z <= ff->bottom.plane->ZatPoint(actor->x, actor->y))
+				z <= ff->bottom.plane->ZatPoint(actor))
 			{ // This floor is above our eyes.
 				secpic = *ff->bottom.texture;
 				break;
@@ -4464,6 +4465,7 @@ enum EACSFunctions
 	ACSF_GetMaxInventory,
 	ACSF_SetSectorDamage,
 	ACSF_SetSectorTerrain,
+	ACSF_SpawnParticle,
 	
 	/* Zandronum's - these must be skipped when we reach 99!
 	-100:ResetMap(0),
@@ -4728,8 +4730,8 @@ static bool DoSpawnDecal(AActor *actor, const FDecalTemplate *tpl, int flags, an
 	{
 		angle += actor->angle;
 	}
-	return NULL != ShootDecal(tpl, actor, actor->Sector, actor->x, actor->y,
-		actor->z + (actor->height>>1) - actor->floorclip + actor->GetBobOffset() + zofs,
+	return NULL != ShootDecal(tpl, actor, actor->Sector, actor->X(), actor->Y(),
+		actor->Z() + (actor->height>>1) - actor->floorclip + actor->GetBobOffset() + zofs,
 		angle, distance, !!(flags & SDF_PERMANENT));
 }
 
@@ -5988,7 +5990,35 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 				}
 			}
 			break;
-			
+		
+		case ACSF_SpawnParticle:
+		{
+			fixed_t x = args[0];
+			fixed_t y = args[1];
+			fixed_t z = args[2];
+			fixed_t xvel = args[3];
+			fixed_t yvel = args[4];
+			fixed_t zvel = args[5];
+			PalEntry color = args[6];
+			int lifetime = args[7];
+			bool fullbright = argCount > 8 ? !!args[8] : false;
+			int startalpha = argCount > 9 ? args[9] : 0xFF; // Byte trans
+			int size = argCount > 10 ? args[10] : 1;
+			int fadestep = argCount > 11 ? args[11] : -1;
+			fixed_t accelx = argCount > 12 ? args[12] : 0;
+			fixed_t accely = argCount > 13 ? args[13] : 0;
+			fixed_t accelz = argCount > 14 ? args[14] : 0;
+
+			startalpha = clamp<int>(startalpha, 0, 0xFF); // Clamp to byte
+			lifetime = clamp<int>(lifetime, 0, 0xFF); // Clamp to byte
+			fadestep = clamp<int>(fadestep, -1, 0xFF); // Clamp to byte inc. -1 (indicating automatic)
+			size = clamp<int>(size, 0, 0xFF); // Clamp to byte
+
+			if (lifetime != 0)
+				P_SpawnParticle(x, y, z, xvel, yvel, zvel, color, fullbright, startalpha, lifetime, size, fadestep, accelx, accely, accelz);
+		}
+		break;
+		
 		default:
 			break;
 	}
@@ -8598,11 +8628,11 @@ scriptwait:
 				}
 				else if (pcd == PCD_GETACTORZ)
 				{
-					STACK(1) = actor->z + actor->GetBobOffset();
+					STACK(1) = actor->Z() + actor->GetBobOffset();
 				}
 				else
 				{
-					STACK(1) =  (&actor->x)[pcd - PCD_GETACTORX];
+					STACK(1) = pcd == PCD_GETACTORX ? actor->X() : pcd == PCD_GETACTORY ? actor->Y() : actor->Z();
 				}
 			}
 			break;
